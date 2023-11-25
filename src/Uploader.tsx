@@ -1,19 +1,22 @@
-import { SyntheticEvent, useCallback } from "react";
-import { Client } from "./client";
+import { SyntheticEvent, useCallback, useContext } from "react";
 
-function Uploader(props: { password: string | null, client: Client }) {
+import { AppContext } from "./AppContext";
+
+function Uploader() {
+  const { password, client } = useContext(AppContext);
+
   const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent> ) => {
     event.preventDefault();
-    if (!props.password) return;
+    if (!password) return;
 
     const formData = new FormData(event.currentTarget);
     const title = formData.get("title") as string;
     const media = formData.get("file") as File;
 
     if (media) {
-      props.client.uploadMedia(props.password, media, title).then(console.log);
+      client.uploadMedia(password, media, title).then(console.log);
     }
-  }, [props.password, props.client]);
+  }, [password, client]);
   
   return (
     <form onSubmit={onSubmit}>

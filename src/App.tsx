@@ -3,16 +3,21 @@ import { useCallback, useState } from 'react'
 // import viteLogo from '/vite.svg'
 import './App.css'
 
+import { Client, MediaItem } from "./client";
+
+import { AppContext } from './AppContext';
+
 import Auth from './Auth';
 import Uploader from './Uploader';
 import Editor from './Editor';
 import Browser from "./Browser";
-import { Client, MediaItem } from "./client";
 
 function App() {
   const [client] = useState(() => new Client({ base: "https://tinybird.zone" }));
   const [password, setPassword] = useState<string | null>(null);
   const [selected, setSelected] = useState<MediaItem | null>(null);
+  
+  const danger = new URL(window.location.toString()).searchParams.has("danger");
 
   const tryPassword = useCallback((password: string) => {
     client.checkLibraryAuth(password).then(({ authorized }) => {
@@ -23,15 +28,15 @@ function App() {
   const editor = password && selected;
 
   return (
-    <>
+    <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger }}>
       <div>
         {selected && <Video media={selected} />}
         {password === null && <Auth tryPassword={tryPassword} />}
-        {editor && <Editor password={password} selected={selected} client={client} />}
-        {password && <Uploader password={password} client={client} />}
+        {editor && <Editor />}
+        {password && <Uploader />}
       </div>
-      <Browser selected={selected} setSelected={setSelected} client={client} />
-    </>
+      <Browser />
+    </AppContext.Provider>
   );
 }
 

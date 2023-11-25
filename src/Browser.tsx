@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Client, MediaItem } from "./client";
 import "./Browser.css"
+
+import { AppContext } from "./AppContext";
 
 type SortType = "title" | "duration" | "newest";
 type MediaCompare = (a: MediaItem, b: MediaItem) => number;
@@ -16,11 +18,13 @@ type BrowserState = {
   sort: SortType,
 }
 
-function Browser(props: { selected: MediaItem | null, setSelected: any, client: Client }) {
+function Browser() {
   const [state, setState] = useState<BrowserState>({ items: [], filter: "", sort: "newest" });
 
+  const { selected, client } = useContext(AppContext);
+
   function refresh() {
-    props.client.searchLibrary().then((items) => setState((state) => ({ ...state, items })));
+    client.searchLibrary().then((items) => setState((state) => ({ ...state, items })));
   }
 
   function filterInput(e: any) {
@@ -69,7 +73,7 @@ function Browser(props: { selected: MediaItem | null, setSelected: any, client: 
       <ul className="listing">
         {filtered.map((item) => (
           <li key={item.mediaId}>
-            <BrowserItem item={item} isSelected={props.selected?.mediaId === item.mediaId} setSelected={props.setSelected} />
+            <BrowserItem item={item} isSelected={selected?.mediaId === item.mediaId} />
           </li>
         ))}
       </ul>
@@ -77,9 +81,11 @@ function Browser(props: { selected: MediaItem | null, setSelected: any, client: 
   );
 }
 
-function BrowserItem(props: { item: any, isSelected: boolean, setSelected: (item: any) => void }) {
+function BrowserItem(props: { item: any, isSelected: boolean }) {
+  const { setSelected } = useContext(AppContext);
+
   function select() {
-    props.setSelected(props.item);
+    setSelected(props.item);
   }
 
   return (

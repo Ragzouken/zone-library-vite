@@ -1,23 +1,34 @@
-import { SyntheticEvent, useCallback } from "react";
+import { SyntheticEvent, useCallback, useContext } from "react";
 import { Client, MediaItem } from "./client";
 
 import "./Editor.css";
 
+import { AppContext } from "./AppContext";
+
 type InputSubmitEvent = SyntheticEvent<HTMLFormElement, SubmitEvent & { submitter: HTMLInputElement }>;
 
-function Editor(props: { selected: MediaItem | null, client: Client, password: string | null }) {
+function Editor() {
+  const { danger, selected, client, password } = useContext(AppContext);
+  
   const onRetitle = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
-    if (!props.selected || !props.password) return;
+    if (!selected || !password) return;
 
     const formData = new FormData(event.currentTarget);
-    const title = (formData.get("title") ?? props.selected.title) as string;
-    props.client.retitleLibraryEntry(props.selected.mediaId, props.password, title).then(console.log);
-  }, []);
+    const title = (formData.get("title") ?? selected.title) as string;
+    client.retitleLibraryEntry(selected.mediaId, password, title).then(console.log);
+  }, [selected, password, client]);
+
+  const onDelete = useCallback((event: any) => {
+    event.preventDefault();
+    if (!selected || !password) return;
+
+    client.deleteLibraryEntry(selected.mediaId, password);
+  }, [selected, password, client]);
 
   const onRetag = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
-    if (!props.selected || !props.password) return;
+    if (!selected || !password) return;
 
     const add = event.nativeEvent.submitter.value === "tag";
 
@@ -26,43 +37,44 @@ function Editor(props: { selected: MediaItem | null, client: Client, password: s
     
     if (tag.length > 0) {
       if (add) {
-        props.client.tagLibraryEntry(props.selected.mediaId, props.password ?? "", tag).then(console.log);
+        client.tagLibraryEntry(selected.mediaId, password ?? "", tag).then(console.log);
       } else {
-        props.client.untagLibraryEntry(props.selected.mediaId, props.password ?? "", tag).then(console.log);
+        client.untagLibraryEntry(selected.mediaId, password ?? "", tag).then(console.log);
       }
     }
-  }, []);
+  }, [selected, password, client]);
 
   const onSubtitle = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
-    if (!props.selected || !props.password) return;
+    if (!selected || !password) return;
 
     const formData = new FormData(event.currentTarget);
     const subtitles = formData.get("file") as File;
 
     if (subtitles) {
-      props.client.uploadSubtitles(props.password ?? "", props.selected.mediaId, subtitles).then(console.log);
+      client.uploadSubtitles(password ?? "", selected.mediaId, subtitles).then(console.log);
     }
-  }, []);
+  }, [selected, password, client]);
 
   return (
     <fieldset className="editor">
       <legend>edit selected</legend>
       <form onSubmit={onRetitle}>
-        <input name="title" type="text" defaultValue={props.selected?.title} key={props.selected?.mediaId} />
+        <input name="title" type="text" defaultValue={selected?.title} key={selected?.mediaId} />
         <input type="submit" value="retitle" />
       </form>
-      <p>Tags: {props.selected?.tags.join(", ")}</p>
+      {danger && <button onClick={onDelete}>delete</button>}
+      <p>Tags: {selected?.tags.join(", ")}</p>
       <form onSubmit={onRetag}>
         <input name="tag" type="text" />
         <input type="submit" value="tag" />
         <input type="submit" value="untag" />
       </form>
       <form onSubmit={onSubtitle}>
-        <input key={props.selected?.mediaId} name="file" type="file" accept=".srt,.vtt" required />
+        <input key={selected?.mediaId} name="file" type="file" accept=".srt,.vtt" required />
         <input type="submit" value="upload subtitles" />
       </form>
-      <a href={props.selected?.subtitle} target="_blank">{props.selected?.subtitle ? "Subtitles" : "No subtitles"}</a>
+      <a href={selected?.subtitle} target="_blank">{selected?.subtitle ? "Subtitles" : "No subtitles"}</a>
     </fieldset>
   );
 }
