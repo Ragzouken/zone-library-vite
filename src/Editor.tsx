@@ -5,7 +5,7 @@ import "./Editor.css";
 
 type InputSubmitEvent = SyntheticEvent<HTMLFormElement, SubmitEvent & { submitter: HTMLInputElement }>;
 
-function Editor(props: { selected: MediaItem | null, hidden: boolean, client: Client, password: string | null }) {
+function Editor(props: { selected: MediaItem | null, client: Client, password: string | null }) {
   const onRetitle = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
     if (!props.selected || !props.password) return;
@@ -46,9 +46,8 @@ function Editor(props: { selected: MediaItem | null, hidden: boolean, client: Cl
   }, []);
 
   return (
-    <fieldset className="editor" hidden={props.hidden}>
+    <fieldset className="editor">
       <legend>edit selected</legend>
-      <Video src={props.selected?.src ?? ""} subtitles={props.selected?.subtitle ?? ""} />
       <form onSubmit={onRetitle}>
         <input name="title" type="text" defaultValue={props.selected?.title} key={props.selected?.mediaId} />
         <input type="submit" value="retitle" />
@@ -65,23 +64,6 @@ function Editor(props: { selected: MediaItem | null, hidden: boolean, client: Cl
       </form>
       <a href={props.selected?.subtitle} target="_blank">{props.selected?.subtitle ? "Subtitles" : "No subtitles"}</a>
     </fieldset>
-  );
-}
-
-function Video(props: { subtitles: string, src: string }) {
-  let subtitles = props.subtitles;
-
-  // bypass cache
-  if (subtitles) {
-    const url = new URL(subtitles);
-    url.searchParams.set("v", Math.random().toString());
-    subtitles = url.toString();
-  }
-
-  return (
-    <video controls src={props.src} crossOrigin="anonymous">
-      <track src={subtitles} kind="subtitles" label="English" srcLang="en" default />
-    </video>
   );
 }
 
