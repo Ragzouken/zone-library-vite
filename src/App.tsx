@@ -31,7 +31,7 @@ function App() {
     <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger }}>
       <div>
         {selected && <Video media={selected} />}
-        {password === null && <Auth tryPassword={tryPassword} />}
+        {password === null && <Auth />}
         {editor && <Editor />}
         {password && <Uploader />}
       </div>

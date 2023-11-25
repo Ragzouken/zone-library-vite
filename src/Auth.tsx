@@ -1,11 +1,15 @@
-import { SyntheticEvent, useCallback } from "react";
+import { SyntheticEvent, useCallback, useContext } from "react";
 
-function Auth(props: { tryPassword: (password: string) => void }) {
+import { AppContext } from "./AppContext";
+
+function Auth() {
+  const { tryPassword } = useContext(AppContext);
+
   const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
     const password = new FormData(event.currentTarget).get("password") as string;
-    props.tryPassword(password);
-  }, [props.tryPassword]);
+    tryPassword(password);
+  }, [tryPassword]);
   
   return (
     <form onSubmit={onSubmit}>
