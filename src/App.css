@@ -1,0 +1,13 @@
+#root {
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: 512px 512px;
+  gap: 1em;
+
+  max-height: 100vh;
+
+  align-items: center;
+
+  overflow: hidden;
+}

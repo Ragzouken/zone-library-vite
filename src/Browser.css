@@ -1,0 +1,93 @@
+.browser {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: min-content 1fr;
+
+  max-height: 100vh;
+}
+
+.browser .controls {
+  display: grid;
+  grid-template-areas: 
+    "sort refresh"
+    "filter filter";
+  gap: .5em;
+  padding: .5em;
+}
+
+.browser .sort {
+  grid-area: sort;
+
+  list-style-type: none;
+  display: flex;
+  justify-content: space-evenly;
+
+  padding: 0;
+  margin: 0;
+}
+
+.browser .refresh {
+  grid-area: refresh;
+}
+
+.browser .filter {
+  grid-area: filter;
+
+  display: flex;
+}
+
+.browser .filter input {
+  flex: 1;
+}
+
+.browser .listing {
+  overflow-y: scroll;
+
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.browser .listing li {
+  width: 100%;
+}
+
+.browser .listing li:nth-child(2n+0) {
+  background-color: whitesmoke;
+}
+
+.browser .listing li:nth-child(2n+1) {
+  background-color: lightgray;
+}
+
+.browser-item {
+  color: black;
+  background: none;
+  border: none;
+  width: 100%;
+  padding: .5em;
+  gap: .5em;
+  display: flex;
+  flex-direction: row;
+  text-align: initial;
+
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.browser-item:hover,
+.browser-item:focus-visible {
+  background-color: cornflowerblue;
+}
+
+.browser-item[aria-selected="true"] {
+  border-left: solid cornflowerblue 0.5em;
+}
+
+.browser-item span {
+  flex: 1;
+}
+
+.browser-item time {
+  flex: 0;
+}
