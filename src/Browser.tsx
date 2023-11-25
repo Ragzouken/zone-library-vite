@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-import { Client, MediaItem } from "./client";
+import { MediaItem } from "./client";
 import "./Browser.css"
 
 import { AppContext } from "./AppContext";
@@ -23,8 +23,12 @@ function Browser() {
 
   const { selected, client } = useContext(AppContext);
 
+  function setItems(items: MediaItem[]) {
+    setState((state) => ({ ...state, items }));
+  }
+
   function refresh() {
-    client.searchLibrary().then((items) => setState((state) => ({ ...state, items })));
+    client.searchLibrary().then(setItems);
   }
 
   function filterInput(e: any) {
@@ -59,8 +63,8 @@ function Browser() {
           {sortOptions.map(({ label, value }) => (
             <li>
               <label>
-                {label}
                 <input name="sort" type="radio" value={value} checked={state.sort === value} onChange={onSortChange} />
+                {label}
               </label>
             </li>
           ))}

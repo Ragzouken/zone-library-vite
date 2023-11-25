@@ -13,6 +13,11 @@
 }
 
 video {
+  max-height: 400px;
   width: 100%;
   background-color: black;
+}
+
+button.danger {
+  background-color: red;
 }

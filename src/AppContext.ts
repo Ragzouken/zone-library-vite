@@ -6,6 +6,6 @@ export const AppContext = createContext({
   client: new Client(),
   password: null as string | null,
   selected: null as MediaItem | null,
-  setSelected: (_: MediaItem) => {},
+  setSelected: (_: MediaItem | null) => {},
   tryPassword: (_: string) => {},
 });
