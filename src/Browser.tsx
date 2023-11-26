@@ -1,6 +1,7 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useContext, useMemo, useState } from "react";
 import { MediaItem } from "./client";
 import "./Browser.css"
+import tags from "./tags.module.css";
 
 import { AppContext } from "./AppContext";
 
@@ -13,46 +14,35 @@ const sorts: Partial<Record<SortType, MediaCompare>> = {
 };
 
 type BrowserState = {
-  items: MediaItem[],
   filter: string,
   sort: SortType,
 }
 
+const sortOptions = [
+  { label: "Newest", value: "newest" },
+  { label: "Longest", value: "duration" },
+  { label: "Title", value: "title" },
+];
+
 function Browser() {
-  const [state, setState] = useState<BrowserState>({ items: [], filter: "", sort: "newest" });
+  const [state, setState] = useState<BrowserState>({ filter: "", sort: "newest" });
 
-  const { selected, client } = useContext(AppContext);
+  const { selected, items, refresh } = useContext(AppContext);
 
-  function setItems(items: MediaItem[]) {
-    setState((state) => ({ ...state, items }));
+  function filterInput(event: ChangeEvent<HTMLInputElement>) {
+    setState({ ...state, filter: event.currentTarget.value });
   }
 
-  function refresh() {
-    client.searchLibrary().then(setItems);
+  function onSortChange(event: ChangeEvent<HTMLInputElement>) {
+    setState({ ...state, sort: event.currentTarget.value as SortType });
   }
-
-  function filterInput(e: any) {
-    setState({ ...state, filter: e.currentTarget.value });
-  }
-
-  function onSortChange(e: any) {
-    setState({ ...state, sort: e.currentTarget.value });
-  }
-
-  useEffect(refresh, []);
 
   const filtered = useMemo(() => {
-    const result = state.items.filter((item) => item.title.includes(state.filter));
+    const result = items.filter((item) => item.title.includes(state.filter));
     if (sorts[state.sort]) result.sort(sorts[state.sort]);
     if (state.sort === "newest") result.reverse();
     return result;
-  }, [state.items, state.filter, state.sort]);
-
-  const sortOptions = [
-    { label: "Newest", value: "newest" },
-    { label: "Longest", value: "duration" },
-    { label: "Title", value: "title" },
-  ]
+  }, [items, state.filter, state.sort]);
 
   return (
     <div className="browser">
@@ -76,7 +66,7 @@ function Browser() {
       </div>
       <ul className="listing">
         {filtered.map((item) => (
-          <li key={item.mediaId}>
+          <li key={item.mediaId} className={["default", ...item.tags].map((tag) => tags[tag]).join(" ")}>
             <BrowserItem item={item} isSelected={selected?.mediaId === item.mediaId} />
           </li>
         ))}
@@ -88,9 +78,9 @@ function Browser() {
 function BrowserItem(props: { item: any, isSelected: boolean }) {
   const { setSelected } = useContext(AppContext);
 
-  function select() {
+  const select = useCallback(() => {
     setSelected(props.item);
-  }
+  }, [props.item, setSelected]);
 
   return (
     <button className="browser-item" aria-selected={props.isSelected} onClick={select}>

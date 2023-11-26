@@ -8,4 +8,8 @@ export const AppContext = createContext({
   selected: null as MediaItem | null,
   setSelected: (_: MediaItem | null) => {},
   tryPassword: (_: string) => {},
+  refresh: () => {},
+  items: [] as MediaItem[],
+  updateItem: (_:MediaItem) => {},
+  removeItem: (_:MediaItem) => {},
 });

@@ -16,8 +16,13 @@ function App() {
   const [client] = useState(() => new Client({ base: "https://tinybird.zone" }));
   const [password, setPassword] = useState<string | null>(null);
   const [selected, setSelected] = useState<MediaItem | null>(null);
-  
+  const [items, setItems] = useState<MediaItem[]>([]); 
+
   const danger = new URL(window.location.toString()).searchParams.has("danger");
+
+  const refresh = useCallback(() => {
+    client.searchLibrary().then(setItems);
+  }, [client, setItems]);
 
   const tryPassword = useCallback((password: string) => {
     client.checkLibraryAuth(password).then(({ authorized }) => {
@@ -25,10 +30,41 @@ function App() {
     });
   }, [client, password]);
 
+  const updateItem = useCallback((item: MediaItem) => {
+    const next = [...items];
+    const index = next.findIndex((other) => item.mediaId === other.mediaId);
+    if (index >= 0) {
+      next[index] = item;
+    } else {
+      next.push(item);
+    }
+    setItems(next);
+  }, [items, setItems]);
+
+  const removeItem = useCallback((item: MediaItem) => {
+    const index = items.findIndex((other) => item.mediaId === other.mediaId);
+    if (index >= 0) {
+      const next = [...items];
+      next.splice(index, 1);
+      setItems(next);
+
+      if (selected?.mediaId === item.mediaId) {
+        setSelected(null);
+      }
+    }
+  }, [items, setItems, selected, setSelected]);
+
+  useEffect(refresh, []);
+
+  useEffect(() => {
+    const item = items.find((other) => selected?.mediaId === other.mediaId);
+    setSelected(item ?? null);
+  }, [items, selected, setSelected]);
+
   const editor = password && selected;
 
   return (
-    <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger }}>
+    <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger, items, refresh, updateItem, removeItem }}>
       <div>
         {selected && <Video media={selected} />}
         {password === null && <Auth />}

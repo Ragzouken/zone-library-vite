@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useContext, useRef } from "react";
+import { MouseEvent, ChangeEvent, SyntheticEvent, useCallback, useContext, useRef } from "react";
 
 import "./Editor.css";
 
@@ -7,19 +7,19 @@ import { AppContext } from "./AppContext";
 type InputSubmitEvent = SyntheticEvent<HTMLFormElement, SubmitEvent & { submitter: HTMLInputElement }>;
 
 function Editor() {
-  const { danger, selected, client, password, setSelected } = useContext(AppContext);
+  const { danger, selected, client, password, updateItem, removeItem } = useContext(AppContext);
 
   const onRetitle = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const title = (formData.get("title") ?? selected!.title) as string;
-    client.retitleLibraryEntry(selected!.mediaId, password!, title).then(setSelected);
-  }, [selected, password, client, setSelected]);
+    client.retitleLibraryEntry(selected!.mediaId, password!, title).then(updateItem);
+  }, [selected, password, client, updateItem]);
 
   const onDelete = useCallback(() => {
-    client.deleteLibraryEntry(selected!.mediaId, password!).then(() => setSelected(null));
-  }, [selected, password, client, setSelected]);
+    client.deleteLibraryEntry(selected!.mediaId, password!).then(removeItem);
+  }, [selected, password, client, removeItem]);
 
   const onRetag = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
@@ -31,12 +31,12 @@ function Editor() {
 
     if (tag.length > 0) {
       if (add) {
-        client.tagLibraryEntry(selected!.mediaId, password!, tag).then(console.log);
+        client.tagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem);
       } else {
-        client.untagLibraryEntry(selected!.mediaId, password!, tag).then(console.log);
+        client.untagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem);
       }
     }
-  }, [selected, password, client]);
+  }, [selected, password, client, updateItem]);
 
   const elFile = useRef<HTMLInputElement>(null);
   const onSubtitleClick = useCallback(() => {
@@ -47,9 +47,14 @@ function Editor() {
     const [subtitles] = event.currentTarget.files!;
 
     if (subtitles) {
-      client.uploadSubtitles(password!, selected!.mediaId, subtitles).then(setSelected);
+      client.uploadSubtitles(password!, selected!.mediaId, subtitles).then(updateItem);
     }
-  }, [client, selected, password, setSelected]);
+  }, [client, selected, password, updateItem]);
+
+  const elTagInput = useRef<HTMLInputElement>(null);
+  const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    elTagInput.current!.value = event.currentTarget.textContent ?? "";
+  }, [elTagInput]);
 
   return (
     <fieldset className="editor" key={selected?.mediaId}>
@@ -63,9 +68,9 @@ function Editor() {
       </fieldset>
       <fieldset>
         <legend>tags</legend>
-        {selected?.tags.join(", ")}
+        {selected?.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}
         <form onSubmit={onRetag}>
-          <input name="tag" type="text" />
+          <input ref={elTagInput} name="tag" type="text" />
           <input type="submit" value="tag" />
           <input type="submit" value="untag" />
         </form>

@@ -1,0 +1,23 @@
+.default:nth-child(2n+0) {
+  background-color: whitesmoke;
+}
+
+.default:nth-child(2n+1) {
+  background-color: lightgray;
+}
+
+.music:nth-child(2n+0) {
+  background-color: rgb(220, 222, 250);
+}
+
+.music:nth-child(2n+1) {
+  background-color: rgb(201, 199, 230);
+}
+
+.vine:nth-child(2n+0) {
+  background-color: rgb(220, 250, 224);
+}
+
+.vine:nth-child(2n+1) {
+  background-color: rgb(199, 230, 209);
+}
