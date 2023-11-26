@@ -61,35 +61,15 @@ function App() {
     setSelected(item ?? null);
   }, [items, selected, setSelected]);
 
-  const editor = password && selected;
-
   return (
     <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger, items, refresh, updateItem, removeItem }}>
       <div>
-        {selected && <Video media={selected} />}
         {password === null && <Auth />}
-        {editor && <Editor />}
+        {selected && <Editor />}
         {password && <Uploader />}
       </div>
       <Browser />
     </AppContext.Provider>
-  );
-}
-
-function Video(props: { media: MediaItem }) {
-  let subtitles = props.media.subtitle;
-
-  // bypass cache
-  if (subtitles) {
-    const url = new URL(subtitles);
-    url.searchParams.set("v", Math.random().toString());
-    subtitles = url.toString();
-  }
-
-  return (
-    <video controls src={props.media.src} crossOrigin="anonymous">
-      {subtitles && <track src={subtitles} kind="subtitles" label="English" srcLang="en" default />}
-    </video>
   );
 }
 

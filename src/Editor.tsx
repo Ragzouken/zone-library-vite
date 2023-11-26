@@ -3,6 +3,7 @@ import { MouseEvent, ChangeEvent, SyntheticEvent, useCallback, useContext, useRe
 import "./Editor.css";
 
 import { AppContext } from "./AppContext";
+import { MediaItem } from "./client";
 
 type InputSubmitEvent = SyntheticEvent<HTMLFormElement, SubmitEvent & { submitter: HTMLInputElement }>;
 
@@ -58,15 +59,16 @@ function Editor() {
 
   return (
     <fieldset className="editor" key={selected?.mediaId}>
-      <legend>edit selected</legend>
-      <fieldset>
+      <legend>{password ? "edit selected" : "view selected"}</legend>
+      <Video media={selected!} />
+      {password && <fieldset>
         <legend>title</legend>
         <form onSubmit={onRetitle}>
           <input name="title" type="text" defaultValue={selected?.title} />
           <input type="submit" value="retitle" />
         </form>
-      </fieldset>
-      <fieldset>
+      </fieldset>}
+      {password && <fieldset>
         <legend>tags</legend>
         {selected?.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}
         <form onSubmit={onRetag}>
@@ -74,19 +76,36 @@ function Editor() {
           <input type="submit" value="tag" />
           <input type="submit" value="untag" />
         </form>
-      </fieldset>
+      </fieldset>}
       <fieldset>
         <legend>subtitles</legend>
-        <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
-        <button onClick={onSubtitleClick}>{selected!.subtitle ? "replace subtitles" : "add subtitles"}</button>
+        {password && <><input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
+        <button onClick={onSubtitleClick}>{selected!.subtitle ? "replace subtitles" : "add subtitles"}</button></>}
         <a href={selected?.subtitle} target="_blank">{selected?.subtitle ? "view subtitles" : "no subtitles"}</a>
       </fieldset>
-      {danger && 
+      {danger && password && 
       <fieldset>
         <legend>danger</legend>
         <button className="danger" onClick={onDelete}>delete media</button>
       </fieldset>}
     </fieldset>
+  );
+}
+
+function Video(props: { media: MediaItem }) {
+  let subtitles = props.media.subtitle;
+
+  // bypass cache
+  if (subtitles) {
+    const url = new URL(subtitles);
+    url.searchParams.set("v", Math.random().toString());
+    subtitles = url.toString();
+  }
+
+  return (
+    <video controls src={props.media.src} crossOrigin="anonymous">
+      {subtitles && <track src={subtitles} kind="subtitles" label="English" srcLang="en" default />}
+    </video>
   );
 }
 
