@@ -9,8 +9,8 @@ type SortType = "title" | "duration" | "newest";
 type MediaCompare = (a: MediaItem, b: MediaItem) => number;
 
 const sorts: Partial<Record<SortType, MediaCompare>> = {
-  title: (a: MediaItem, b: MediaItem) => a.title.localeCompare(b.title),
-  duration: (a: MediaItem, b: MediaItem) => b.duration - a.duration,
+  title: (a, b) => a.title.localeCompare(b.title),
+  duration: (a, b) => b.duration - a.duration,
 };
 
 type BrowserState = {

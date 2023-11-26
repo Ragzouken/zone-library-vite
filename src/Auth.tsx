@@ -10,19 +10,19 @@ function Auth() {
     const password = new FormData(event.currentTarget).get("password") as string;
     tryPassword(password);
   }, [tryPassword]);
-  
+
   return (
-    <form onSubmit={onSubmit}>
-      <fieldset>
-        <legend>authorization</legend>
+    <fieldset>
+      <legend>authorization</legend>
+      <form onSubmit={onSubmit}>
         <label>
           🔑
           <input type="password" name="password" autoComplete="current-password" required></input>
         </label>
         <input type="submit" value="check" />
-      </fieldset>
-    </form>
-  ); 
+      </form>
+    </fieldset>
+  );
 }
 
 export default Auth;

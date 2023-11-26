@@ -5,7 +5,7 @@ import { AppContext } from "./AppContext";
 function Uploader() {
   const { password, client, setSelected, refresh } = useContext(AppContext);
 
-  const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent> ) => {
+  const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -19,7 +19,7 @@ function Uploader() {
       });
     }
   }, [password, client, setSelected, refresh]);
-  
+
   const elTitleInput = useRef<HTMLInputElement>(null);
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];
@@ -32,11 +32,11 @@ function Uploader() {
     <form onSubmit={onSubmit}>
       <fieldset>
         <legend>upload media</legend>
+        <input onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
         <label>
           title
           <input ref={elTitleInput} type="text" name="title" required></input>
         </label>
-        <input onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
         <input type="submit" value="upload" />
       </fieldset>
     </form>
