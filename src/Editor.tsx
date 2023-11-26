@@ -68,20 +68,23 @@ function Editor() {
           <input type="submit" value="retitle" />
         </form>
       </fieldset>}
-      {password && <fieldset>
+      <fieldset>
         <legend>tags</legend>
-        {selected?.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}
-        <form onSubmit={onRetag}>
+        {password && selected?.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}
+        {!password && selected?.tags.join(", ")}
+        {password && <form onSubmit={onRetag}>
           <input ref={elTagInput} name="tag" type="text" />
           <input type="submit" value="tag" />
           <input type="submit" value="untag" />
-        </form>
-      </fieldset>}
+        </form>}
+      </fieldset>
       <fieldset>
         <legend>subtitles</legend>
-        {password && <><input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
-        <button onClick={onSubtitleClick}>{selected!.subtitle ? "replace subtitles" : "add subtitles"}</button></>}
         <a href={selected?.subtitle} target="_blank">{selected?.subtitle ? "view subtitles" : "no subtitles"}</a>
+        {password && <>
+          <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
+          <button onClick={onSubtitleClick}>{selected!.subtitle ? "replace subtitles" : "add subtitles"}</button>
+        </>}
       </fieldset>
       {danger && password && 
       <fieldset>
