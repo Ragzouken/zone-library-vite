@@ -1,4 +1,4 @@
-import { MouseEvent, ChangeEvent, SyntheticEvent, useCallback, useContext, useRef } from "react";
+import { MouseEvent, ChangeEvent, SyntheticEvent, useCallback, useContext, useRef, useState } from "react";
 
 import { AppContext } from "./AppContext";
 import { MediaItem } from "./client";
@@ -7,21 +7,28 @@ type InputSubmitEvent = SyntheticEvent<HTMLFormElement, SubmitEvent & { submitte
 
 function Editor() {
   const { danger, selected, client, password, updateItem, removeItem } = useContext(AppContext);
+  const [locked, setLocked] = useState(false);
 
   const onRetitle = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
+    setLocked(true);
 
     const formData = new FormData(event.currentTarget);
     const title = (formData.get("title") ?? selected!.title) as string;
-    client.retitleLibraryEntry(selected!.mediaId, password!, title).then(updateItem);
-  }, [selected, password, client, updateItem]);
+    client.retitleLibraryEntry(selected!.mediaId, password!, title).then(updateItem).then(() => setLocked(false));
+  }, [selected, password, client, updateItem, setLocked]);
 
   const onDelete = useCallback(() => {
-    client.deleteLibraryEntry(selected!.mediaId, password!).then(removeItem);
-  }, [selected, password, client, removeItem]);
+    setLocked(true);
+    client.deleteLibraryEntry(selected!.mediaId, password!).then((item) => {
+      removeItem(item);
+      setLocked(false);
+    });
+  }, [selected, password, client, removeItem, setLocked]);
 
   const onRetag = useCallback((event: InputSubmitEvent) => {
     event.preventDefault();
+    setLocked(true);
 
     const add = event.nativeEvent.submitter.value === "tag";
 
@@ -30,12 +37,14 @@ function Editor() {
 
     if (tag.length > 0) {
       if (add) {
-        client.tagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem);
+        client.tagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem).then(() => setLocked(false));
       } else {
-        client.untagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem);
+        client.untagLibraryEntry(selected!.mediaId, password!, tag).then(updateItem).then(() => setLocked(false));
       }
+    } else {
+      setLocked(false);
     }
-  }, [selected, password, client, updateItem]);
+  }, [selected, password, client, updateItem, setLocked]);
 
   const elFile = useRef<HTMLInputElement>(null);
   const onSubtitleClick = useCallback(() => {
@@ -43,12 +52,13 @@ function Editor() {
   }, [client, selected, password, elFile]);
 
   const onSubtitleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setLocked(true);
     const [subtitles] = event.currentTarget.files!;
 
     if (subtitles) {
-      client.uploadSubtitles(password!, selected!.mediaId, subtitles).then(updateItem);
+      client.uploadSubtitles(password!, selected!.mediaId, subtitles).then(updateItem).then(() => setLocked(false));
     }
-  }, [client, selected, password, updateItem]);
+  }, [client, selected, password, updateItem, setLocked]);
 
   const elTagInput = useRef<HTMLInputElement>(null);
   const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
@@ -56,7 +66,7 @@ function Editor() {
   }, [elTagInput]);
 
   return (
-    <fieldset key={selected?.mediaId}>
+    <fieldset key={selected?.mediaId} disabled={locked}>
       <legend>{password ? "edit selected" : "view selected"}</legend>
       <Video media={selected!} />
       {password && <fieldset>
@@ -88,7 +98,7 @@ function Editor() {
       {danger && password &&
         <fieldset className="danger">
           <legend>danger</legend>
-          <form><button onClick={onDelete}>delete media</button></form>
+          <button onClick={onDelete}>delete media</button>
         </fieldset>}
     </fieldset>
   );

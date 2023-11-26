@@ -1,12 +1,14 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useContext, useRef } from "react";
+import { ChangeEvent, SyntheticEvent, useCallback, useContext, useRef, useState } from "react";
 
 import { AppContext } from "./AppContext";
 
 function Uploader() {
   const { password, client, setSelected, refresh } = useContext(AppContext);
+  const [locked, setLocked] = useState(false);
 
   const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     event.preventDefault();
+    setLocked(true);
 
     const formData = new FormData(event.currentTarget);
     const title = formData.get("title") as string;
@@ -15,6 +17,7 @@ function Uploader() {
     if (media) {
       client.uploadMedia(password!, media, title).then((item) => {
         setSelected(item);
+        setLocked(false);
         refresh();
       });
     }
@@ -30,7 +33,7 @@ function Uploader() {
 
   return (
     <form onSubmit={onSubmit}>
-      <fieldset>
+      <fieldset disabled={locked}>
         <legend>upload media</legend>
         <input onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
         <label>
