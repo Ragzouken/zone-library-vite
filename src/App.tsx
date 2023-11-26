@@ -63,7 +63,7 @@ function App() {
 
   return (
     <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger, items, refresh, updateItem, removeItem }}>
-      <div>
+      <div className="controls">
         {password === null && <Auth />}
         {selected && <Editor />}
         {password && <Uploader />}

@@ -68,15 +68,14 @@ function Editor() {
       </fieldset>}
       <fieldset>
         <legend>tags</legend>
-        {!password && <span>{(selected?.tags.join(", ") || "no tags")}</span>}
-        {password && <>
+        {password ? <>
           <form>{selected?.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}</form>
           <form onSubmit={onRetag}>
             <input ref={elTagInput} name="tag" type="text" />
             <input type="submit" value="tag" />
             <input type="submit" value="untag" />
           </form>
-        </>}
+        </> : <span>{(selected?.tags.join(", ") || "no tags")}</span>}
       </fieldset>
       <fieldset>
         <legend>subtitles</legend>
