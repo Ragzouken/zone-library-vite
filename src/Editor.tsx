@@ -1,11 +1,11 @@
-import { MouseEvent, ChangeEvent, useCallback, useContext, useRef } from "react";
+import { MouseEvent, ChangeEvent, useCallback, useContext, useRef, useMemo } from "react";
 
 import { AppContext } from "./AppContext";
 import { MediaItem } from "./client";
 import { useLock } from "./App";
 
 function Editor({ selected }: { selected: MediaItem }) {
-  const { danger, client, password, updateItem, removeItem } = useContext(AppContext);
+  const { danger, client, password, updateItem, removeItem, items } = useContext(AppContext);
   const [locked, _, WithLock] = useLock();
 
   const elTitle = useRef<HTMLInputElement>(null);
@@ -49,10 +49,33 @@ function Editor({ selected }: { selected: MediaItem }) {
     WithLock(client.deleteLibraryEntry(selected.mediaId, password!).then(removeItem));
   }, [selected.mediaId, password, client, removeItem, WithLock]);
 
+  const tags = useMemo(() => {
+    return Object.entries(
+      items
+        .flatMap(i => i.tags)
+        .reduce((tags, tag) => {
+          tags[tag] = (tags[tag] || 0) + 1;
+          return tags;
+        }, {} as Record<string, number>)
+    )
+      .sort(([, a], [, b]) => b - a)
+      .map(([tag,]) => tag);
+  }, [items]);
+
   return (
     <fieldset key={selected.mediaId} disabled={locked}>
       <legend>{password ? "edit selected" : "view selected"}</legend>
       <Video media={selected} />
+      <fieldset>
+        <legend>subtitles</legend>
+        <div className="form-row">
+          <div className="form-row"><a href={selected.subtitle} target="_blank">{selected.subtitle ? "view subtitles" : "no subtitles"}</a></div>
+          {password && <>
+            <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
+            <button onClick={onSubtitleClick}>{selected.subtitle ? "replace subtitles" : "add subtitles"}</button>
+          </>}
+        </div>
+      </fieldset>
       {password && <fieldset>
         <legend>title</legend>
         <div className="form-row">
@@ -65,21 +88,14 @@ function Editor({ selected }: { selected: MediaItem }) {
         {password ? <>
           <div className="form-row">{selected.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}</div>
           <div className="form-row">
-            <input ref={elTag} name="tag" type="text" required />
+            <input ref={elTag} list="tags" name="tag" type="text" required />
             <button onClick={onTag}>tag</button>
             <button onClick={onUntag}>untag</button>
+            <datalist id="tags">
+              {tags.map((tag) => <option value={tag} />)}
+            </datalist>
           </div>
         </> : <span>{(selected.tags.join(", ") || "no tags")}</span>}
-      </fieldset>
-      <fieldset>
-        <legend>subtitles</legend>
-        <div className="form-row">
-          <div className="form-row"><a href={selected.subtitle} target="_blank">{selected.subtitle ? "view subtitles" : "no subtitles"}</a></div>
-          {password && <>
-            <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
-            <button onClick={onSubtitleClick}>{selected.subtitle ? "replace subtitles" : "add subtitles"}</button>
-          </>}
-        </div>
       </fieldset>
       {danger && password &&
         <fieldset className="danger">

@@ -15,19 +15,19 @@ function Uploader({ password, limit }: { password: string, limit: number }) {
     const title = elTitle.current?.value ?? "untitled";
     const [media] = (elMedia.current?.files ?? []);
 
-    if (media && media.size <= limit) {
+    if (media && !large) {
       WithLock(client.uploadMedia(password, media, title).then(setSelected).then(refresh));
     } else {
       elMedia.current?.click();
     }
-  }, [password, client, setSelected, refresh, elTitle, elMedia]);
+  }, [password, client, setSelected, refresh, elTitle, elMedia, large]);
 
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];
 
     setLarge((file?.size ?? 0) > limit);
     elTitle.current!.value = file?.name || "";
-  }, [elTitle]);
+  }, [elTitle, setLarge]);
 
   return (
     <fieldset disabled={locked}>
