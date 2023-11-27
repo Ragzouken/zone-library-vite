@@ -28,7 +28,7 @@ const sortOptions = [
 function Browser() {
   const [state, setState] = useState<BrowserState>({ filter: "", sort: "newest" });
 
-  const { selected, items, refresh } = useContext(AppContext);
+  const { state: appState, refresh } = useContext(AppContext);
 
   function filterInput(event: ChangeEvent<HTMLInputElement>) {
     setState({ ...state, filter: event.currentTarget.value });
@@ -39,11 +39,11 @@ function Browser() {
   }
 
   const filtered = useMemo(() => {
-    const result = items.filter((item) => item.title.includes(state.filter));
+    const result = appState.items.filter((item) => item.title.includes(state.filter));
     if (sorts[state.sort]) result.sort(sorts[state.sort]);
     if (state.sort === "newest") result.reverse();
     return result;
-  }, [items, state.filter, state.sort]);
+  }, [appState.items, state.filter, state.sort]);
 
   return (
     <div className="browser">
@@ -68,7 +68,7 @@ function Browser() {
       <ul className="listing">
         {filtered.map((item) => (
           <li key={item.mediaId} className={["default", ...item.tags].map((tag) => tags[tag]).join(" ")}>
-            <BrowserItem item={item} isSelected={selected?.mediaId === item.mediaId} />
+            <BrowserItem item={item} isSelected={appState.selected?.mediaId === item.mediaId} />
           </li>
         ))}
       </ul>

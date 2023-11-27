@@ -12,63 +12,75 @@ import Uploader from './Uploader';
 import Editor from './Editor';
 import Browser from "./Browser";
 
-function App() {
-  const [client] = useState(() => new Client({ base: "https://tinybird.zone" }));
-  const [password, setPassword] = useState<string | null>(null);
-  const [selected, setSelected] = useState<MediaItem | null>(null);
-  const [items, setItems] = useState<MediaItem[]>([]); 
-  const [limit, setLimit] = useState(0);
+export type AppState = {
+  client: Client,
+  password: string | null,
+  selected: MediaItem | null,
+  items: MediaItem[],
+  limit: number,
+  danger: boolean,
+}
 
-  const danger = new URL(window.location.toString()).searchParams.has("danger");
+function App() {
+  const [state, setState] = useState<AppState>({
+    client: new Client({ base: "https://tinybird.zone" }),
+    password: null,
+    selected: null,
+    items: [],
+    limit: 0,
+    danger: new URL(window.location.toString()).searchParams.has("danger"),
+  });
 
   const refresh = useCallback(() => {
-    client.searchLibrary().then(setItems);
-    client.getSizeLimit().then(setLimit);
-  }, [client, setItems, setLimit]);
+    state.client.searchLibrary().then((items) => setState((state) => ({ ...state, items })));
+    state.client.getSizeLimit().then((limit) => setState((state) => ({ ...state, limit })));
+  }, [state.client]);
 
   const tryPassword = useCallback((password: string) => {
-    client.checkLibraryAuth(password).then(({ authorized }) => {
-      if (authorized) setPassword(password);
+    state.client.checkLibraryAuth(password).then(({ authorized }) => {
+      if (authorized) setState((state) => ({ ...state, password }));
     });
-  }, [client]);
+  }, [state.client]);
+
+  const setSelected = useCallback((selected: MediaItem | null) => setState((state) => ({ ...state, selected })), []);
 
   const updateItem = useCallback((item: MediaItem) => {
-    const next = [...items];
-    const index = next.findIndex((other) => item.mediaId === other.mediaId);
-    if (index >= 0) {
-      next[index] = item;
-    } else {
-      next.push(item);
-    }
-    setItems(next);
-  }, [items, setItems]);
-
-  const removeItem = useCallback((item: MediaItem) => {
+    const items = [...state.items];
     const index = items.findIndex((other) => item.mediaId === other.mediaId);
     if (index >= 0) {
-      const next = [...items];
-      next.splice(index, 1);
-      setItems(next);
+      items[index] = item;
+    } else {
+      items.push(item);
+    }
+    setState({ ...state, items });
+  }, [state]);
 
-      if (selected?.mediaId === item.mediaId) {
+  const removeItem = useCallback((item: MediaItem) => {
+    const index = state.items.findIndex((other) => item.mediaId === other.mediaId);
+    if (index >= 0) {
+      const items = [...state.items];
+      items.splice(index, 1);
+      setState((state) => ({ ...state, items }));
+
+      if (state.selected?.mediaId === item.mediaId) {
         setSelected(null);
       }
     }
-  }, [items, setItems, selected, setSelected]);
+  }, [setSelected, state.items, state.selected?.mediaId]);
 
   useEffect(refresh, [refresh]);
 
   useEffect(() => {
-    const item = items.find((other) => selected?.mediaId === other.mediaId);
+    const item = state.items.find((other) => state.selected?.mediaId === other.mediaId);
     setSelected(item ?? null);
-  }, [items, selected, setSelected]);
+  }, [state.items, setSelected, state.selected?.mediaId]);
 
   return (
-    <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger, items, refresh, updateItem, removeItem }}>
+    <AppContext.Provider value={{ state, setSelected, tryPassword, refresh, updateItem, removeItem }}>
       <div className="controls">
-        {password === null && <Auth />}
-        {selected ? <Editor selected={selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
-        {password && <Uploader password={password} limit={limit} />}
+        {state.password === null && <Auth />}
+        {state.selected ? <Editor selected={state.selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
+        {state.password && <Uploader password={state.password} limit={state.limit} />}
       </div>
       <Browser />
     </AppContext.Provider>

@@ -4,7 +4,7 @@ import { AppContext } from "./AppContext";
 import { useLock } from "./utilities";
 
 function Uploader({ password, limit }: { password: string, limit: number }) {
-  const { client, setSelected, refresh } = useContext(AppContext);
+  const { state, setSelected, refresh } = useContext(AppContext);
   const [locked, , WithLock] = useLock();
 
   const [large, setLarge] = useState(false);
@@ -16,11 +16,11 @@ function Uploader({ password, limit }: { password: string, limit: number }) {
     const [media] = (elMedia.current?.files ?? []);
 
     if (media && !large) {
-      WithLock(client.uploadMedia(password, media, title).then(setSelected).then(refresh));
+      WithLock(state.client.uploadMedia(password, media, title).then(setSelected).then(refresh));
     } else {
       elMedia.current?.click();
     }
-  }, [large, WithLock, client, password, setSelected, refresh]);
+  }, [large, WithLock, state.client, password, setSelected, refresh]);
 
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];

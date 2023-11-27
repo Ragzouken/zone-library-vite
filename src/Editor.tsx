@@ -5,28 +5,28 @@ import { MediaItem } from "./client";
 import { useLock } from "./utilities";
 
 function Editor({ selected }: { selected: MediaItem }) {
-  const { danger, client, password, updateItem, removeItem, items } = useContext(AppContext);
+  const { state, updateItem, removeItem } = useContext(AppContext);
   const [locked, , WithLock] = useLock();
 
   const elTitle = useRef<HTMLInputElement>(null);
   const onRetitle = useCallback(() => {
     const title = elTitle.current?.value ?? "untitled";
 
-    WithLock(client.retitleLibraryEntry(selected.mediaId, password!, title).then(updateItem));
-  }, [selected.mediaId, password, client, updateItem, WithLock]);
+    WithLock(state.client.retitleLibraryEntry(selected.mediaId, state.password!, title).then(updateItem));
+  }, [WithLock, state.client, state.password, selected.mediaId, updateItem]);
 
   const elTag = useRef<HTMLInputElement>(null);
   const onTag = useCallback(() => {
     const tag = elTag.current?.value ?? "";
     if (!tag) return;
-    WithLock(client.tagLibraryEntry(selected.mediaId, password!, tag).then(updateItem));
-  }, [WithLock, client, selected.mediaId, password, updateItem]);
+    WithLock(state.client.tagLibraryEntry(selected.mediaId, state.password!, tag).then(updateItem));
+  }, [WithLock, selected.mediaId, state.client, state.password, updateItem]);
 
   const onUntag = useCallback(() => {
     const tag = elTag.current?.value ?? "";
     if (!tag) return;
-    WithLock(client.untagLibraryEntry(selected.mediaId, password!, tag).then(updateItem));
-  }, [WithLock, client, selected.mediaId, password, updateItem]);
+    WithLock(state.client.untagLibraryEntry(selected.mediaId, state.password!, tag).then(updateItem));
+  }, [WithLock, selected.mediaId, state.client, state.password, updateItem]);
 
   const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     elTag.current!.value = event.currentTarget.textContent ?? "";
@@ -41,17 +41,17 @@ function Editor({ selected }: { selected: MediaItem }) {
     const [subtitles] = event.currentTarget.files!;
 
     if (subtitles) {
-      WithLock(client.uploadSubtitles(password!, selected.mediaId, subtitles).then(updateItem));
+      WithLock(state.client.uploadSubtitles(state.password!, selected.mediaId, subtitles).then(updateItem));
     }
-  }, [client, selected.mediaId, password, updateItem, WithLock]);
+  }, [state.client, selected.mediaId, state.password, updateItem, WithLock]);
 
   const onDelete = useCallback(() => {
-    WithLock(client.deleteLibraryEntry(selected.mediaId, password!).then(removeItem));
-  }, [selected.mediaId, password, client, removeItem, WithLock]);
+    WithLock(state.client.deleteLibraryEntry(selected.mediaId, state.password!).then(removeItem));
+  }, [WithLock, state.client, selected.mediaId, state.password, removeItem]);
 
   const tags = useMemo(() => {
     return Object.entries(
-      items
+      state.items
         .flatMap(i => i.tags)
         .reduce((tags, tag) => {
           tags[tag] = (tags[tag] || 0) + 1;
@@ -60,23 +60,23 @@ function Editor({ selected }: { selected: MediaItem }) {
     )
       .sort(([, a], [, b]) => b - a)
       .map(([tag,]) => tag);
-  }, [items]);
+  }, [state.items]);
 
   return (
     <fieldset key={selected.mediaId} disabled={locked}>
-      <legend>{password ? "edit selected" : "view selected"}</legend>
+      <legend>{state.password ? "edit selected" : "view selected"}</legend>
       <Video media={selected} />
       <fieldset>
         <legend>subtitles</legend>
         <div className="form-row">
           <div className="form-row"><a href={selected.subtitle} target="_blank">{selected.subtitle ? "view subtitles" : "no subtitles"}</a></div>
-          {password && <>
+          {state.password && <>
             <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
             <button onClick={onSubtitleClick}>{selected.subtitle ? "replace subtitles" : "add subtitles"}</button>
           </>}
         </div>
       </fieldset>
-      {password && <fieldset>
+      {state.password && <fieldset>
         <legend>title</legend>
         <div className="form-row">
           <input ref={elTitle} name="title" type="text" defaultValue={selected.title} />
@@ -85,7 +85,7 @@ function Editor({ selected }: { selected: MediaItem }) {
       </fieldset>}
       <fieldset>
         <legend>tags</legend>
-        {password ? <>
+        {state.password ? <>
           <div className="form-row">{selected.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}</div>
           <div className="form-row">
             <input ref={elTag} list="tags" name="tag" type="text" required />
@@ -97,7 +97,7 @@ function Editor({ selected }: { selected: MediaItem }) {
           </div>
         </> : <span>{(selected.tags.join(", ") || "no tags")}</span>}
       </fieldset>
-      {danger && password &&
+      {state.danger && state.password &&
         <fieldset className="danger">
           <legend>danger</legend>
           <button onClick={onDelete}>delete media</button>
