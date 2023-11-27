@@ -8,7 +8,7 @@ function Auth() {
   const elPassword = useRef<HTMLInputElement>(null);
   const onCheck = useCallback(() => {
     tryPassword(elPassword.current?.value ?? "");
-  }, [tryPassword, elPassword]);
+  }, [tryPassword]);
 
   return (
     <fieldset>

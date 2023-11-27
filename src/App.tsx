@@ -30,7 +30,7 @@ function App() {
     client.checkLibraryAuth(password).then(({ authorized }) => {
       if (authorized) setPassword(password);
     });
-  }, [client, password]);
+  }, [client]);
 
   const updateItem = useCallback((item: MediaItem) => {
     const next = [...items];
@@ -56,7 +56,7 @@ function App() {
     }
   }, [items, setItems, selected, setSelected]);
 
-  useEffect(refresh, []);
+  useEffect(refresh, [refresh]);
 
   useEffect(() => {
     const item = items.find((other) => selected?.mediaId === other.mediaId);
@@ -73,21 +73,6 @@ function App() {
       <Browser />
     </AppContext.Provider>
   );
-}
-
-export function useLock() {
-  const [locked, setLocked] = useState(false);
-
-  const WithLock = useCallback(async <T,>(promise: Promise<T>) => {
-    try {
-      setLocked(true);
-      await promise;
-    } finally {
-      setLocked(false);
-    }
-  }, [setLocked]);
-
-  return [locked, setLocked, WithLock] as [typeof locked, typeof setLocked, typeof WithLock];
 }
 
 export default App

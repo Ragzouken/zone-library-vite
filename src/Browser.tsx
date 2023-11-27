@@ -4,6 +4,7 @@ import "./Browser.css"
 import tags from "./tags.module.css";
 
 import { AppContext } from "./AppContext";
+import { secondsToTime } from "./utilities";
 
 type SortType = "title" | "duration" | "newest";
 type MediaCompare = (a: MediaItem, b: MediaItem) => number;
@@ -75,7 +76,7 @@ function Browser() {
   );
 }
 
-function BrowserItem(props: { item: any, isSelected: boolean }) {
+function BrowserItem(props: { item: MediaItem, isSelected: boolean }) {
   const { setSelected } = useContext(AppContext);
 
   const select = useCallback(() => {
@@ -88,17 +89,6 @@ function BrowserItem(props: { item: any, isSelected: boolean }) {
       <time>{secondsToTime(props.item.duration / 1000)}</time>
     </button>
   );
-}
-
-const pad2 = (part: any) => (part.toString().length >= 2 ? part.toString() : '0' + part.toString());
-function secondsToTime(seconds: number) {
-  if (isNaN(seconds)) return '??:??';
-
-  const s = Math.floor(seconds % 60);
-  const m = Math.floor(seconds / 60) % 60;
-  const h = Math.floor(seconds / 3600);
-
-  return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 }
 
 export default Browser;

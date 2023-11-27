@@ -2,11 +2,11 @@ import { MouseEvent, ChangeEvent, useCallback, useContext, useRef, useMemo } fro
 
 import { AppContext } from "./AppContext";
 import { MediaItem } from "./client";
-import { useLock } from "./App";
+import { useLock } from "./utilities";
 
 function Editor({ selected }: { selected: MediaItem }) {
   const { danger, client, password, updateItem, removeItem, items } = useContext(AppContext);
-  const [locked, _, WithLock] = useLock();
+  const [locked, , WithLock] = useLock();
 
   const elTitle = useRef<HTMLInputElement>(null);
   const onRetitle = useCallback(() => {
@@ -20,13 +20,13 @@ function Editor({ selected }: { selected: MediaItem }) {
     const tag = elTag.current?.value ?? "";
     if (!tag) return;
     WithLock(client.tagLibraryEntry(selected.mediaId, password!, tag).then(updateItem));
-  }, [elTag, selected, password, client, WithLock]);
+  }, [WithLock, client, selected.mediaId, password, updateItem]);
 
   const onUntag = useCallback(() => {
     const tag = elTag.current?.value ?? "";
     if (!tag) return;
     WithLock(client.untagLibraryEntry(selected.mediaId, password!, tag).then(updateItem));
-  }, [elTag, selected, password, client]);
+  }, [WithLock, client, selected.mediaId, password, updateItem]);
 
   const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     elTag.current!.value = event.currentTarget.textContent ?? "";

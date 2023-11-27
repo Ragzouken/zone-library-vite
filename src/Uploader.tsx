@@ -1,11 +1,11 @@
 import { ChangeEvent, useCallback, useContext, useRef, useState } from "react";
 
 import { AppContext } from "./AppContext";
-import { useLock } from "./App";
+import { useLock } from "./utilities";
 
 function Uploader({ password, limit }: { password: string, limit: number }) {
   const { client, setSelected, refresh } = useContext(AppContext);
-  const [locked, _, WithLock] = useLock();
+  const [locked, , WithLock] = useLock();
 
   const [large, setLarge] = useState(false);
 
@@ -20,14 +20,14 @@ function Uploader({ password, limit }: { password: string, limit: number }) {
     } else {
       elMedia.current?.click();
     }
-  }, [password, client, setSelected, refresh, elTitle, elMedia, large]);
+  }, [large, WithLock, client, password, setSelected, refresh]);
 
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];
 
     setLarge((file?.size ?? 0) > limit);
     elTitle.current!.value = file?.name || "";
-  }, [elTitle, setLarge]);
+  }, [limit, setLarge]);
 
   return (
     <fieldset disabled={locked}>
