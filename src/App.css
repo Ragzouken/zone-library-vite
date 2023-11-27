@@ -35,6 +35,11 @@ video {
   border-color: red;
 }
 
+input[type="file"] {
+  word-break: break-all;
+  width: 100%;
+}
+
 input[type="text"], input[type="password"] {
   flex: 1;
 }
@@ -46,10 +51,27 @@ fieldset {
   gap: .5em;
 }
 
-form, label {
+label {
   flex: 1;
   display: flex;
   flex-direction: row;
   gap: .5em;
 }
 
+.form-row {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: .5em;
+}
+
+.form-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+}
+
+.invalid {
+  color: red;
+}

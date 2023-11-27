@@ -17,12 +17,14 @@ function App() {
   const [password, setPassword] = useState<string | null>(null);
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [items, setItems] = useState<MediaItem[]>([]); 
+  const [limit, setLimit] = useState(0);
 
   const danger = new URL(window.location.toString()).searchParams.has("danger");
 
   const refresh = useCallback(() => {
     client.searchLibrary().then(setItems);
-  }, [client, setItems]);
+    client.getSizeLimit().then(setLimit);
+  }, [client, setItems, setLimit]);
 
   const tryPassword = useCallback((password: string) => {
     client.checkLibraryAuth(password).then(({ authorized }) => {
@@ -65,12 +67,27 @@ function App() {
     <AppContext.Provider value={{ client, password, selected, setSelected, tryPassword, danger, items, refresh, updateItem, removeItem }}>
       <div className="controls">
         {password === null && <Auth />}
-        {selected && <Editor />}
-        {password && <Uploader />}
+        {selected ? <Editor selected={selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
+        {password && <Uploader password={password} limit={limit} />}
       </div>
       <Browser />
     </AppContext.Provider>
   );
+}
+
+export function useLock() {
+  const [locked, setLocked] = useState(false);
+
+  const WithLock = useCallback(async <T,>(promise: Promise<T>) => {
+    try {
+      setLocked(true);
+      await promise;
+    } finally {
+      setLocked(false);
+    }
+  }, [setLocked]);
+
+  return [locked, setLocked, WithLock] as [typeof locked, typeof setLocked, typeof WithLock];
 }
 
 export default App

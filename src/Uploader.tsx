@@ -1,48 +1,46 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useContext, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useContext, useRef, useState } from "react";
 
 import { AppContext } from "./AppContext";
+import { useLock } from "./App";
 
-function Uploader() {
-  const { password, client, setSelected, refresh } = useContext(AppContext);
-  const [locked, setLocked] = useState(false);
+function Uploader({ password, limit }: { password: string, limit: number }) {
+  const { client, setSelected, refresh } = useContext(AppContext);
+  const [locked, _, WithLock] = useLock();
 
-  const onSubmit = useCallback((event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
-    event.preventDefault();
-    setLocked(true);
+  const [large, setLarge] = useState(false);
 
-    const formData = new FormData(event.currentTarget);
-    const title = formData.get("title") as string;
-    const media = formData.get("file") as File;
+  const elTitle = useRef<HTMLInputElement>(null);
+  const elMedia = useRef<HTMLInputElement>(null);
+  const onUpload = useCallback(() => {
+    const title = elTitle.current?.value ?? "untitled";
+    const [media] = (elMedia.current?.files ?? []);
 
-    if (media) {
-      client.uploadMedia(password!, media, title).then((item) => {
-        setSelected(item);
-        setLocked(false);
-        refresh();
-      });
+    if (media && media.size <= limit) {
+      WithLock(client.uploadMedia(password, media, title).then(setSelected).then(refresh));
+    } else {
+      elMedia.current?.click();
     }
-  }, [password, client, setSelected, refresh]);
+  }, [password, client, setSelected, refresh, elTitle, elMedia]);
 
-  const elTitleInput = useRef<HTMLInputElement>(null);
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];
-    if (file && elTitleInput.current?.value.length === 0) {
-      elTitleInput.current.value = file.name;
-    }
-  }, [elTitleInput]);
+
+    setLarge((file?.size ?? 0) > limit);
+    elTitle.current!.value = file?.name || "";
+  }, [elTitle]);
 
   return (
-    <form onSubmit={onSubmit}>
-      <fieldset disabled={locked}>
-        <legend>upload media</legend>
-        <input onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
+    <fieldset disabled={locked}>
+      <legend>upload media</legend>
+        <input className={large ? "invalid" : ""} ref={elMedia} onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
+      <div className="form-row">
         <label>
           title
-          <input ref={elTitleInput} type="text" name="title" required></input>
+          <input ref={elTitle} type="text" name="title" required></input>
         </label>
-        <input type="submit" value="upload" />
-      </fieldset>
-    </form>
+        <button onClick={onUpload} disabled={large} title={large ? "file too large" : ""}>upload</button>
+      </div>
+    </fieldset>
   );
 }
 
