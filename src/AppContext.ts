@@ -4,9 +4,9 @@ import { AppState } from "./App";
 
 export const AppContext = createContext<{
   state: AppState,
-  setSelected: (item: MediaItem | null) => void,
   tryPassword: (password: string) => void,
   refresh: () => void,
+  selectItem: (item: MediaItem | null) => void,
   updateItem: (item: MediaItem) => void,
   removeItem: (item: MediaItem) => void;
 }>({} as any);

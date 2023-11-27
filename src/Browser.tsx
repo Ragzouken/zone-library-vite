@@ -77,11 +77,11 @@ function Browser() {
 }
 
 function BrowserItem(props: { item: MediaItem, isSelected: boolean }) {
-  const { setSelected } = useContext(AppContext);
+  const { selectItem } = useContext(AppContext);
 
   const select = useCallback(() => {
-    setSelected(props.item);
-  }, [props.item, setSelected]);
+    selectItem(props.item);
+  }, [props.item, selectItem]);
 
   return (
     <button className="browser-item" aria-selected={props.isSelected} onClick={select}>

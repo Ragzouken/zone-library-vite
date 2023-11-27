@@ -4,7 +4,7 @@ import { AppContext } from "./AppContext";
 import { useLock } from "./utilities";
 
 function Uploader({ password, limit }: { password: string, limit: number }) {
-  const { state, setSelected, refresh } = useContext(AppContext);
+  const { state, selectItem: setSelected, refresh } = useContext(AppContext);
   const [locked, , WithLock] = useLock();
 
   const [large, setLarge] = useState(false);

@@ -42,7 +42,7 @@ function App() {
     });
   }, [state.client]);
 
-  const setSelected = useCallback((selected: MediaItem | null) => setState((state) => ({ ...state, selected })), []);
+  const selectItem = useCallback((selected: MediaItem | null) => setState((state) => ({ ...state, selected })), []);
 
   const updateItem = useCallback((item: MediaItem) => {
     const items = [...state.items];
@@ -63,20 +63,20 @@ function App() {
       setState((state) => ({ ...state, items }));
 
       if (state.selected?.mediaId === item.mediaId) {
-        setSelected(null);
+        selectItem(null);
       }
     }
-  }, [setSelected, state.items, state.selected?.mediaId]);
+  }, [selectItem, state.items, state.selected?.mediaId]);
 
   useEffect(refresh, [refresh]);
 
   useEffect(() => {
     const item = state.items.find((other) => state.selected?.mediaId === other.mediaId);
-    setSelected(item ?? null);
-  }, [state.items, setSelected, state.selected?.mediaId]);
+    selectItem(item ?? null);
+  }, [state.items, selectItem, state.selected?.mediaId]);
 
   return (
-    <AppContext.Provider value={{ state, setSelected, tryPassword, refresh, updateItem, removeItem }}>
+    <AppContext.Provider value={{ state, selectItem, tryPassword, refresh, updateItem, removeItem }}>
       <div className="controls">
         {state.password === null && <Auth />}
         {state.selected ? <Editor selected={state.selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
