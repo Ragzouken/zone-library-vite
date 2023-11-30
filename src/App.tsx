@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
 import './App.css'
@@ -21,8 +21,62 @@ export type AppState = {
   danger: boolean,
 }
 
+export type AppAction =
+  {
+    type: "setItems",
+    items: MediaItem[], 
+  } | {
+    type: "selectItem",
+    item: MediaItem | null,
+  } | {
+    type: "updateItem",
+    item: MediaItem,
+  } | {
+    type: "removeItem",
+    item: MediaItem,
+  } | {
+    type: "password",
+    password: string,
+  } | {
+    type: "limit",
+    limit: number,
+  };
+
+function reduce(state: AppState, action: AppAction) {
+  if (action.type === "setItems") {
+    return { ...state, items: action.items };
+  } else if (action.type === "selectItem") {
+    return { ...state, selected: action.item };
+  } else if (action.type === "updateItem") {
+    const items = [...state.items];
+    const index = items.findIndex((other) => action.item.mediaId === other.mediaId);
+    if (index >= 0) {
+      items[index] = action.item;
+    } else {
+      items.push(action.item);
+    }
+    return { ...state, items };
+  } else if (action.type === "removeItem") {
+    const index = state.items.findIndex((other) => action.item.mediaId === other.mediaId);
+    if (index >= 0) {
+      const items = [...state.items];
+      items.splice(index, 1);
+
+      const selected = state.selected?.mediaId === action.item.mediaId ? action.item : state.selected;
+
+      return { ...state, selected, items };
+    }
+  } else if (action.type === "password") {
+    return { ...state, password: action.password };
+  } else if (action.type === "limit") {
+    return { ...state, limit: action.limit };
+  }
+    
+  return state;
+}
+
 function App() {
-  const [state, setState] = useState<AppState>({
+  const [state, dispatch] = useReducer(reduce, {
     client: new Client({ base: "https://tinybird.zone" }),
     password: null,
     selected: null,
@@ -31,52 +85,20 @@ function App() {
     danger: new URL(window.location.toString()).searchParams.has("danger"),
   });
 
+  useEffect(() => {
+    const item = state.items.find((other) => state.selected?.mediaId === other.mediaId) ?? null;
+    dispatch({ type: "selectItem", item });
+  }, [state.items, state.selected?.mediaId]);
+
   const refresh = useCallback(() => {
-    state.client.searchLibrary().then((items) => setState((state) => ({ ...state, items })));
-    state.client.getSizeLimit().then((limit) => setState((state) => ({ ...state, limit })));
+    state.client.searchLibrary().then((items) => dispatch({ type: "setItems", items }));
+    state.client.getSizeLimit().then((limit) => dispatch({ type: "limit", limit }));
   }, [state.client]);
-
-  const tryPassword = useCallback((password: string) => {
-    state.client.checkLibraryAuth(password).then(({ authorized }) => {
-      if (authorized) setState((state) => ({ ...state, password }));
-    });
-  }, [state.client]);
-
-  const selectItem = useCallback((selected: MediaItem | null) => setState((state) => ({ ...state, selected })), []);
-
-  const updateItem = useCallback((item: MediaItem) => {
-    const items = [...state.items];
-    const index = items.findIndex((other) => item.mediaId === other.mediaId);
-    if (index >= 0) {
-      items[index] = item;
-    } else {
-      items.push(item);
-    }
-    setState({ ...state, items });
-  }, [state]);
-
-  const removeItem = useCallback((item: MediaItem) => {
-    const index = state.items.findIndex((other) => item.mediaId === other.mediaId);
-    if (index >= 0) {
-      const items = [...state.items];
-      items.splice(index, 1);
-      setState((state) => ({ ...state, items }));
-
-      if (state.selected?.mediaId === item.mediaId) {
-        selectItem(null);
-      }
-    }
-  }, [selectItem, state.items, state.selected?.mediaId]);
 
   useEffect(refresh, [refresh]);
 
-  useEffect(() => {
-    const item = state.items.find((other) => state.selected?.mediaId === other.mediaId);
-    selectItem(item ?? null);
-  }, [state.items, selectItem, state.selected?.mediaId]);
-
   return (
-    <AppContext.Provider value={{ state, selectItem, tryPassword, refresh, updateItem, removeItem }}>
+    <AppContext.Provider value={{ state, dispatch, refresh }}>
       <div className="controls">
         {state.password === null && <Auth />}
         {state.selected ? <Editor selected={state.selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}

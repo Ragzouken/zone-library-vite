@@ -1,12 +1,8 @@
-import { createContext } from "react";
-import { MediaItem } from "./client";
-import { AppState } from "./App";
+import { Dispatch, createContext } from "react";
+import { AppAction, AppState } from "./App";
 
 export const AppContext = createContext<{
   state: AppState,
-  tryPassword: (password: string) => void,
+  dispatch: Dispatch<AppAction>,
   refresh: () => void,
-  selectItem: (item: MediaItem | null) => void,
-  updateItem: (item: MediaItem) => void,
-  removeItem: (item: MediaItem) => void;
 }>({} as any);

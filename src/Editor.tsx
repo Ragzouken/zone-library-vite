@@ -5,49 +5,49 @@ import { MediaItem } from "./client";
 import { useLock } from "./utilities";
 
 function Editor({ selected }: { selected: MediaItem }) {
-  const { state, updateItem, removeItem } = useContext(AppContext);
+  const { state, dispatch } = useContext(AppContext);
   const [locked, , WithLock] = useLock();
 
-  const elTitle = useRef<HTMLInputElement>(null);
+  const refTitle = useRef<HTMLInputElement>(null);
   const onRetitle = useCallback(() => {
-    const title = elTitle.current?.value ?? "untitled";
+    const title = refTitle.current?.value ?? "untitled";
 
-    WithLock(state.client.retitleLibraryEntry(selected.mediaId, state.password!, title).then(updateItem));
-  }, [WithLock, state.client, state.password, selected.mediaId, updateItem]);
+    WithLock(state.client.retitleLibraryEntry(selected.mediaId, state.password!, title).then((item) => dispatch({ type: "updateItem", item })));
+  }, [WithLock, state.client, state.password, selected.mediaId, dispatch]);
 
-  const elTag = useRef<HTMLInputElement>(null);
+  const refTag = useRef<HTMLInputElement>(null);
   const onTag = useCallback(() => {
-    const tag = elTag.current?.value ?? "";
+    const tag = refTag.current?.value ?? "";
     if (!tag) return;
-    WithLock(state.client.tagLibraryEntry(selected.mediaId, state.password!, tag).then(updateItem));
-  }, [WithLock, selected.mediaId, state.client, state.password, updateItem]);
+    WithLock(state.client.tagLibraryEntry(selected.mediaId, state.password!, tag).then((item) => dispatch({ type: "updateItem", item })));
+  }, [WithLock, dispatch, selected.mediaId, state.client, state.password]);
 
   const onUntag = useCallback(() => {
-    const tag = elTag.current?.value ?? "";
+    const tag = refTag.current?.value ?? "";
     if (!tag) return;
-    WithLock(state.client.untagLibraryEntry(selected.mediaId, state.password!, tag).then(updateItem));
-  }, [WithLock, selected.mediaId, state.client, state.password, updateItem]);
+    WithLock(state.client.untagLibraryEntry(selected.mediaId, state.password!, tag).then((item) => dispatch({ type: "updateItem", item })));
+  }, [WithLock, dispatch, selected.mediaId, state.client, state.password]);
 
   const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
-    elTag.current!.value = event.currentTarget.textContent ?? "";
-  }, [elTag]);
+    refTag.current!.value = event.currentTarget.textContent ?? "";
+  }, [refTag]);
 
-  const elFile = useRef<HTMLInputElement>(null);
+  const refFile = useRef<HTMLInputElement>(null);
   const onSubtitleClick = useCallback(() => {
-    elFile.current?.click();
-  }, [elFile]);
+    refFile.current?.click();
+  }, [refFile]);
 
   const onSubtitleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [subtitles] = event.currentTarget.files!;
 
     if (subtitles) {
-      WithLock(state.client.uploadSubtitles(state.password!, selected.mediaId, subtitles).then(updateItem));
+      WithLock(state.client.uploadSubtitles(state.password!, selected.mediaId, subtitles).then((item) => dispatch({ type: "updateItem", item })));
     }
-  }, [state.client, selected.mediaId, state.password, updateItem, WithLock]);
+  }, [WithLock, state.client, state.password, selected.mediaId, dispatch]);
 
   const onDelete = useCallback(() => {
-    WithLock(state.client.deleteLibraryEntry(selected.mediaId, state.password!).then(removeItem));
-  }, [WithLock, state.client, selected.mediaId, state.password, removeItem]);
+    WithLock(state.client.deleteLibraryEntry(selected.mediaId, state.password!).then((item) => dispatch({ type: "removeItem", item })));
+  }, [WithLock, state.client, state.password, selected.mediaId, dispatch]);
 
   const tags = useMemo(() => {
     return Object.entries(
@@ -71,7 +71,7 @@ function Editor({ selected }: { selected: MediaItem }) {
         <div className="form-row">
           <div className="form-row"><a href={selected.subtitle} target="_blank">{selected.subtitle ? "view subtitles" : "no subtitles"}</a></div>
           {state.password && <>
-            <input onChange={onSubtitleChange} ref={elFile} hidden name="file" type="file" accept=".srt,.vtt" />
+            <input onChange={onSubtitleChange} ref={refFile} hidden name="file" type="file" accept=".srt,.vtt" />
             <button onClick={onSubtitleClick}>{selected.subtitle ? "replace subtitles" : "add subtitles"}</button>
           </>}
         </div>
@@ -79,7 +79,7 @@ function Editor({ selected }: { selected: MediaItem }) {
       {state.password && <fieldset>
         <legend>title</legend>
         <div className="form-row">
-          <input ref={elTitle} name="title" type="text" defaultValue={selected.title} />
+          <input ref={refTitle} name="title" type="text" defaultValue={selected.title} />
           <button onClick={onRetitle}>retitle</button>
         </div>
       </fieldset>}
@@ -88,7 +88,7 @@ function Editor({ selected }: { selected: MediaItem }) {
         {state.password ? <>
           <div className="form-row">{selected.tags.map((tag) => <button key={tag} onClick={onTagClick}>{tag}</button>)}</div>
           <div className="form-row">
-            <input ref={elTag} list="tags" name="tag" type="text" required />
+            <input ref={refTag} list="tags" name="tag" type="text" required />
             <button onClick={onTag}>tag</button>
             <button onClick={onUntag}>untag</button>
             <datalist id="tags">
