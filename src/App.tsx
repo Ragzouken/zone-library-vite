@@ -62,7 +62,7 @@ function reduce(state: AppState, action: AppAction) {
       const items = [...state.items];
       items.splice(index, 1);
 
-      const selected = state.selected?.mediaId === action.item.mediaId ? action.item : state.selected;
+      const selected = state.selected?.mediaId === action.item.mediaId ? null : state.selected;
 
       return { ...state, selected, items };
     }
