@@ -52,7 +52,7 @@ function Browser() {
         <ul className="sort">
           Sort by:
           {sortOptions.map(({ label, value }) => (
-            <li>
+            <li key={value}>
               <label>
                 <input name="sort" type="radio" value={value} checked={state.sort === value} onChange={onSortChange} />
                 {label}
