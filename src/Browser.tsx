@@ -39,7 +39,7 @@ function Browser() {
   }
 
   const filtered = useMemo(() => {
-    const result = appState.items.filter((item) => item.title.includes(state.filter));
+    const result = appState.items.filter((item) => item.title.toUpperCase().includes(state.filter.toUpperCase()));
     if (sorts[state.sort]) result.sort(sorts[state.sort]);
     if (state.sort === "newest") result.reverse();
     return result;
