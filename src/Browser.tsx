@@ -39,7 +39,7 @@ function Browser() {
   }
 
   const filtered = useMemo(() => {
-    const result = appState.items.filter((item) => item.title.includes(state.filter));
+    const result = appState.items.filter((item) => item.title.toUpperCase().includes(state.filter.toUpperCase()));
     if (sorts[state.sort]) result.sort(sorts[state.sort]);
     if (state.sort === "newest") result.reverse();
     return result;
@@ -52,7 +52,7 @@ function Browser() {
         <ul className="sort">
           Sort by:
           {sortOptions.map(({ label, value }) => (
-            <li>
+            <li key={value}>
               <label>
                 <input name="sort" type="radio" value={value} checked={state.sort === value} onChange={onSortChange} />
                 {label}
