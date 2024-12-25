@@ -98,14 +98,14 @@ function App() {
   useEffect(refresh, [refresh]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch, refresh }}>
+    <AppContext value={{ state, dispatch, refresh }}>
       <div className="controls">
         {state.password === null && <Auth />}
         {state.selected ? <Editor selected={state.selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
         {state.password && <Uploader password={state.password} limit={state.limit} />}
       </div>
       <Browser />
-    </AppContext.Provider>
+    </AppContext>
   );
 }
 
