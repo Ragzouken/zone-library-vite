@@ -19,17 +19,16 @@ function Uploader({ password, limit }: { password: string, limit: number }) {
     refTitle.current!.value = file?.name || "";
   }, [limit, setLarge]);
 
-  async function uploadAction(formData: FormData) {
+  const uploadAction = useCallback(async (formData: FormData) => {
     const title = formData.get("title") as string;
     const media = formData.get("file") as File;
 
     if (media && !large) {
       const item = await state.client.uploadMedia(password, media, title);
-      console.log(item)
       await dispatch({ type: "selectItem", item });
       await refresh();
     }
-  }
+  }, [large, state.client, password, dispatch, refresh]);
 
   return (
     <fieldset disabled={pending}>
