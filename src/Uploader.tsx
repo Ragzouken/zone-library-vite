@@ -1,26 +1,16 @@
-import { ChangeEvent, useCallback, useContext, useRef, useState } from "react";
+import { ChangeEvent, useActionState, useCallback, useContext, useRef, useState } from "react";
 
 import { AppContext } from "./AppContext";
-import { useLock } from "./utilities";
+import { useFormStatus } from "react-dom";
 
 function Uploader({ password, limit }: { password: string, limit: number }) {
   const { state, dispatch, refresh } = useContext(AppContext);
-  const [locked, , WithLock] = useLock();
 
   const [large, setLarge] = useState(false);
+  const { pending } = useFormStatus();
 
   const refTitle = useRef<HTMLInputElement>(null);
   const refMedia = useRef<HTMLInputElement>(null);
-  const onUpload = useCallback(() => {
-    const title = refTitle.current?.value ?? "untitled";
-    const [media] = (refMedia.current?.files ?? []);
-
-    if (media && !large) {
-      WithLock(state.client.uploadMedia(password, media, title).then((item) => dispatch({ type: "selectItem", item })).then(refresh));
-    } else {
-      refMedia.current?.click();
-    }
-  }, [large, WithLock, state.client, password, refresh, dispatch]);
 
   const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const [file] = event.currentTarget.files ?? [];
@@ -29,18 +19,35 @@ function Uploader({ password, limit }: { password: string, limit: number }) {
     refTitle.current!.value = file?.name || "";
   }, [limit, setLarge]);
 
+  const [, uploadAction,] = useActionState(
+    async (previousState: void | null, formData: FormData) => {
+      const title = formData.get("title") as string;
+      const media = formData.get("file") as File;
+
+      if (media && !large) {
+        const item = await state.client.uploadMedia(password, media, title);
+        console.log(item)
+        await dispatch({ type: "selectItem", item });
+        await refresh();
+      }
+    },
+    null,
+  );
+
   return (
-    <fieldset disabled={locked}>
-      <legend>upload media</legend>
-        <input className={large ? "invalid" : ""} ref={refMedia} onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
-      <div className="form-row">
-        <label>
-          title
-          <input ref={refTitle} type="text" name="title" required></input>
-        </label>
-        <button onClick={onUpload} disabled={large} title={large ? "file too large" : ""}>upload</button>
-      </div>
-    </fieldset>
+    <form>
+      <fieldset disabled={pending}>
+        <legend>upload media</legend>
+          <input className={large ? "invalid" : ""} ref={refMedia} onChange={onFileChange} type="file" name="file" required accept=".mp3,.mp4"></input>
+        <div className="form-row">
+          <label>
+            title
+            <input ref={refTitle} type="text" name="title" required></input>
+          </label>
+          <button formAction={uploadAction} disabled={large} title={large ? "file too large" : ""}>upload</button>
+        </div>
+      </fieldset>
+    </form>
   );
 }
 
