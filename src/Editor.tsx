@@ -1,38 +1,33 @@
-import { MouseEvent, ChangeEvent, useCallback, useContext, useRef, useMemo, useActionState } from "react";
+import { MouseEvent, ChangeEvent, useCallback, useContext, useRef, useMemo } from "react";
 
 import { AppContext } from "./AppContext";
 import { MediaItem } from "./client";
 import { useFormStatus } from "react-dom";
 
 function Editor({ selected }: { selected: MediaItem }) {
-  const { state, } = useContext(AppContext);
+  const { state } = useContext(AppContext);
   const { pending } = useFormStatus();
 
   return (
-    <form>
-      <fieldset key={selected.mediaId} disabled={pending}>
-        <legend>{state.password ? "edit selected" : "view selected"}</legend>
-        <Video media={selected} />
-        <Subtitle selected={selected} />
-        {state.password && <Retitle selected={selected} />}
-        <Tags selected={selected} />
-        {state.danger && state.password && <Delete selected={selected} />}
-      </fieldset>
-    </form>
+    <fieldset key={selected.mediaId} disabled={pending}>
+      <legend>{state.password ? "edit selected" : "view selected"}</legend>
+      <Video media={selected} />
+      <Subtitle selected={selected} />
+      {state.password && <Retitle selected={selected} />}
+      <Tags selected={selected} />
+      {state.danger && state.password && <Delete selected={selected} />}
+    </fieldset>
   );
 }
 
 function Retitle({ selected }: { selected: MediaItem }) {
   const { state, dispatch } = useContext(AppContext);
 
-  const [, formAction,] = useActionState(
-    async (previousState: void | null, formData: FormData) => {
-      const title = formData.get("title") as string;
-      const item = await state.client.retitleLibraryEntry(selected.mediaId, state.password!, title);
-      await dispatch({ type: "updateItem", item });
-    },
-    null,
-  );
+  async function formAction(formData: FormData) {
+    const title = formData.get("title") as string;
+    const item = await state.client.retitleLibraryEntry(selected.mediaId, state.password!, title);
+    await dispatch({ type: "updateItem", item });
+  }
 
   return (
     <fieldset>
@@ -62,14 +57,11 @@ function Subtitle({ selected }: { selected: MediaItem }) {
     }
   }, [refSubmit]);
 
-  const [, formAction,] = useActionState(
-    async (previousState: void | null, formData: FormData) => {
-      const subtitles = formData.get("file") as File;
-      const item = await state.client.uploadSubtitles(state.password!, selected.mediaId, subtitles);
-      await dispatch({ type: "updateItem", item });
-    },
-    null,
-  );
+  async function formAction(formData: FormData) {
+    const subtitles = formData.get("file") as File;
+    const item = await state.client.uploadSubtitles(state.password!, selected.mediaId, subtitles);
+    await dispatch({ type: "updateItem", item });
+  }
 
   return (
     <fieldset>
@@ -89,24 +81,18 @@ function Subtitle({ selected }: { selected: MediaItem }) {
 function Tags({ selected }: { selected: MediaItem }) {
   const { state, dispatch } = useContext(AppContext);
 
-  const [, tagAction,] = useActionState(
-    async (previousState: void | null, formData: FormData) => {
-      const tag = formData.get("tag") as string;
-      const item = await state.client.tagLibraryEntry(selected.mediaId, state.password!, tag);
-      await dispatch({ type: "updateItem", item });
-    },
-    null,
-  );
+  async function tagAction(formData: FormData) {
+    const tag = formData.get("tag") as string;
+    const item = await state.client.tagLibraryEntry(selected.mediaId, state.password!, tag);
+    await dispatch({ type: "updateItem", item });
+  }
 
-  const [, untagAction,] = useActionState(
-    async (previousState: void | null, formData: FormData) => {
-      const tag = formData.get("tag") as string;
-      const item = await state.client.untagLibraryEntry(selected.mediaId, state.password!, tag);
-      await dispatch({ type: "updateItem", item });
-    },
-    null,
-  );
-
+  async function untagAction(formData: FormData) {
+    const tag = formData.get("tag") as string;
+    const item = await state.client.untagLibraryEntry(selected.mediaId, state.password!, tag);
+    await dispatch({ type: "updateItem", item });
+  }
+  
   const refTag = useRef<HTMLInputElement>(null);
   const onTagClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     refTag.current!.value = event.currentTarget.textContent ?? "";
@@ -146,13 +132,10 @@ function Tags({ selected }: { selected: MediaItem }) {
 function Delete({ selected }: { selected: MediaItem }) {
   const { state, dispatch } = useContext(AppContext);
 
-  const [, formAction,] = useActionState(
-    async () => {
-      const item = await state.client.deleteLibraryEntry(selected.mediaId, state.password!);
-      await dispatch({ type: "removeItem", item });
-    },
-    null,
-  );
+  async function formAction() {
+    const item = await state.client.deleteLibraryEntry(selected.mediaId, state.password!);
+    await dispatch({ type: "removeItem", item });
+  }
 
   return (
     <fieldset className="danger">

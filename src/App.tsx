@@ -101,8 +101,8 @@ function App() {
     <AppContext value={{ state, dispatch, refresh }}>
       <div className="controls">
         {state.password === null && <Auth />}
-        {state.selected ? <Editor selected={state.selected} /> : <fieldset><legend>nothing selected</legend></fieldset>}
-        {state.password && <Uploader password={state.password} limit={state.limit} />}
+        {state.selected ? <form><Editor selected={state.selected} /></form> : <fieldset><legend>nothing selected</legend></fieldset>}
+        {state.password && <form><Uploader password={state.password} limit={state.limit} /></form>}
       </div>
       <Browser />
     </AppContext>
